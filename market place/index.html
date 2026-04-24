@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winjay | Algerian Modern Marketplace</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        .winjay-orange { color: #FF6600; }
+        .bg-winjay-orange { background-color: #FF6600; }
+        .border-winjay-orange { border-color: #FF6600; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <img src="https://rxlpesdvskyytbfoufvp.supabase.co/storage/v1/object/public/assets/official%20winjay%20logo%20white%20head.png" alt="Winjay" class="w-8 h-8 object-contain">
+                    <span class="text-xl font-bold tracking-tight">WINJAY<span class="winjay-orange">.DZ</span></span>
+                </div>
+                
+                <div class="hidden md:flex flex-1 max-w-md mx-8">
+                    <div class="relative w-full">
+                        <input type="text" placeholder="Search anything in Algeria..." class="w-full bg-gray-100 border-none rounded-full py-2 pl-10 pr-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all text-sm">
+                        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4" id="nav-actions">
+                    <button onclick="showModal('auth-modal')" class="text-sm font-medium hover:text-winjay-orange transition-colors">Sign In</button>
+                    <button onclick="checkAuthAndPost()" class="bg-winjay-orange text-white px-5 py-2 rounded-full text-sm font-bold shadow-lg shadow-winjay-orange/20 hover:scale-105 transition-transform active:scale-95">+ Post Ad</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero / Categories -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold">Categories</h2>
+                <a href="#" class="text-sm font-medium winjay-orange hover:underline">View all</a>
+            </div>
+            <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar" id="category-list">
+                <!-- Categories will be injected here -->
+            </div>
+        </section>
+
+        <!-- Listings Grid -->
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold">Latest Listings</h2>
+                <div class="flex gap-2">
+                    <button class="p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="sliders-horizontal" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="listings-grid">
+                <!-- Skeleton Loading -->
+                <div class="animate-pulse bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div class="bg-gray-200 h-48 rounded-xl mb-4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+                <!-- Repeat Skeletons -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="hideModal('auth-modal')"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-winjay-orange/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <img src="https://rxlpesdvskyytbfoufvp.supabase.co/storage/v1/object/public/assets/official%20winjay%20logo%20white%20head.png" class="w-8 h-8 object-contain">
+                </div>
+                <h2 class="text-2xl font-bold">Welcome back</h2>
+                <p class="text-gray-500 mt-2">Sign in to start trading in Algeria</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button onclick="signInWithGoogle()" class="w-full flex items-center justify-center gap-3 border border-gray-200 py-3 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="w-5 h-5 object-contain">
+                    Continue with Google
+                </button>
+                <div class="relative py-2">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-100"></div></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-gray-400">Or email</span></div>
+                </div>
+                <input type="email" id="email" placeholder="Email address" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                <input type="password" id="password" placeholder="Password" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                <button onclick="handleAuth()" id="auth-submit-btn" class="w-full bg-winjay-orange text-white py-3 rounded-xl font-bold shadow-lg shadow-winjay-orange/20 hover:opacity-90 transition-opacity">Sign In</button>
+                <p class="text-center text-sm text-gray-500">
+                    Don't have an account? <a href="#" onclick="toggleAuthMode()" id="auth-toggle-link" class="winjay-orange font-bold">Sign Up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold">Complete your profile</h2>
+                <p class="text-gray-500 mt-2">Required to start posting on Winjay</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Username (@handle)</label>
+                    <input type="text" id="setup-username" placeholder="e.g. amine_dz" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" id="setup-phone" placeholder="05/06/07XXXXXXXX" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Wilaya</label>
+                    <select id="setup-wilaya" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                        <option value="">Select your Wilaya</option>
+                        <!-- Wilayas will be injected -->
+                    </select>
+                </div>
+                <button onclick="saveProfile()" class="w-full bg-winjay-orange text-white py-4 rounded-xl font-bold shadow-lg shadow-winjay-orange/20 hover:opacity-90 transition-opacity mt-4">Save & Continue →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Ad Modal -->
+    <div id="post-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="hideModal('post-modal')"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold">What are you selling?</h2>
+                <button onclick="hideModal('post-modal')" class="p-2 hover:bg-gray-100 rounded-full transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <input type="text" id="ad-title" placeholder="Title (e.g. iPhone 15 Pro Max)" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                    <textarea id="ad-desc" placeholder="Describe your item..." class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all h-32"></textarea>
+                    <input type="number" id="ad-price" placeholder="Price (DZD)" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                </div>
+                <div class="space-y-4">
+                    <select id="ad-category" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all"></select>
+                    <select id="ad-wilaya" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all"></select>
+                    <div class="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center cursor-pointer hover:border-winjay-orange transition-colors relative overflow-hidden" onclick="document.getElementById('ad-image-input').click()">
+                        <div id="image-preview" class="absolute inset-0 hidden">
+                            <img src="" class="w-full h-full object-cover">
+                        </div>
+                        <i data-lucide="image" class="w-12 h-12 text-gray-300 mx-auto mb-2"></i>
+                        <p class="text-sm text-gray-500">Click to upload photo</p>
+                        <input type="file" id="ad-image-input" class="hidden" accept="image/*" onchange="previewImage(this)">
+                    </div>
+                </div>
+            </div>
+            <button onclick="handlePostAd()" class="w-full bg-winjay-orange text-white py-4 rounded-xl font-bold shadow-lg shadow-winjay-orange/20 hover:opacity-90 transition-opacity mt-8 flex items-center justify-center gap-2">
+                <span id="post-btn-text">Publish Listing 🎉</span>
+                <div id="post-loader" class="hidden animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Listing Detail Modal -->
+    <div id="detail-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="hideModal('detail-modal')"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]">
+            <div class="w-full md:w-1/2 h-64 md:h-auto bg-gray-100">
+                <img id="detail-img" src="" class="w-full h-full object-cover">
+            </div>
+            <div class="w-full md:w-1/2 p-8 overflow-y-auto">
+                <div class="flex justify-between items-start mb-4">
+                    <button onclick="hideModal('detail-modal')" class="md:hidden absolute top-4 right-4 bg-white/80 p-2 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    <div>
+                        <h2 id="detail-title" class="text-2xl font-bold text-gray-900 mb-1"></h2>
+                        <div class="flex items-center gap-2">
+                            <span id="detail-price" class="text-xl font-bold winjay-orange"></span>
+                            <span id="detail-condition" class="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase text-gray-500"></span>
+                        </div>
+                    </div>
+                    <button class="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400"><i data-lucide="heart" class="w-6 h-6"></i></button>
+                </div>
+                
+                <div class="flex gap-4 mb-6 py-4 border-y border-gray-50">
+                    <div class="flex items-center gap-2 text-gray-500 text-sm">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        <span id="detail-wilaya"></span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-500 text-sm">
+                        <i data-lucide="clock" class="w-4 h-4"></i>
+                        <span id="detail-date"></span>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="font-bold text-gray-900 mb-2">Description</h3>
+                    <p id="detail-desc" class="text-gray-600 leading-relaxed"></p>
+                </div>
+
+                <div class="bg-gray-50 rounded-2xl p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-winjay-orange rounded-full flex items-center justify-center text-white font-bold" id="detail-avatar"></div>
+                        <div>
+                            <div class="flex items-center gap-1">
+                                <span id="detail-username" class="font-bold text-gray-900"></span>
+                                <div id="detail-verified" class="hidden"><i data-lucide="badge-check" class="w-4 h-4 winjay-orange"></i></div>
+                            </div>
+                            <span class="text-xs text-gray-500">Seller in Algeria</span>
+                        </div>
+                    </div>
+                    <button id="whatsapp-link" onclick="" class="bg-green-500 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-green-600 transition-colors">
+                        <i data-lucide="message-circle" class="w-5 h-5"></i>
+                        WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="hideModal('profile-modal')"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start mb-8">
+                <div class="flex items-center gap-4">
+                    <div id="profile-avatar-large" class="w-20 h-20 bg-winjay-orange rounded-full flex items-center justify-center text-white text-3xl font-bold"></div>
+                    <div>
+                        <h2 id="profile-name" class="text-2xl font-bold flex items-center gap-2"></h2>
+                        <p id="profile-username-display" class="text-gray-500"></p>
+                        <div id="profile-badge-container" class="mt-1"></div>
+                    </div>
+                </div>
+                <button onclick="hideModal('profile-modal')" class="p-2 hover:bg-gray-100 rounded-full transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-gray-50 p-4 rounded-2xl">
+                    <span class="text-xs text-gray-400 uppercase font-bold">Location</span>
+                    <p id="profile-wilaya-display" class="font-bold text-gray-900"></p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl">
+                    <span class="text-xs text-gray-400 uppercase font-bold">Phone</span>
+                    <p id="profile-phone-display" class="font-bold text-gray-900"></p>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-lg font-bold mb-4">My Listings</h3>
+                <div id="my-listings-grid" class="grid grid-cols-2 gap-4">
+                    <!-- My listings will be injected here -->
+                </div>
+            </div>
+
+            <button onclick="handleSignOut()" class="w-full border border-red-100 text-red-500 py-3 rounded-xl font-bold hover:bg-red-50 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                Sign Out
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+        function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>
