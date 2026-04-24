@@ -263,7 +263,7 @@ async function saveProfile() {
         showProfile(); 
     } catch (error) {
         console.error('Final Error:', error);
-        alert('Error: This username might be taken, or your database needs the SQL update I sent you!');
+        alert('TECHNICAL ERROR: ' + (error.message || 'Unknown error') + '\n\nMake sure you ran the SQL in Supabase!');
     }
 }
 
