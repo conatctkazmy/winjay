@@ -230,24 +230,40 @@ async function saveProfile() {
     }
 
     try {
-        const { error } = await db.from('profiles').upsert({
+        const profileData = {
             id: currentUser.id,
             username,
             full_name: fullName,
             business_type: businessType,
             phone,
             wilaya,
-            verified: false,
-            referral_count: 0,
             updated_at: new Date()
-        });
+        };
 
-        if (error) throw error;
+        const { error } = await db.from('profiles').upsert(profileData);
+
+        if (error) {
+            console.error('Supabase Error:', error);
+            // If it's a schema error, try saving only the basic fields
+            if (error.message.includes('column')) {
+                const { error: retryError } = await db.from('profiles').upsert({
+                    id: currentUser.id,
+                    username,
+                    phone,
+                    wilaya,
+                    updated_at: new Date()
+                });
+                if (retryError) throw retryError;
+            } else {
+                throw error;
+            }
+        }
+        
         hideModal('onboarding-modal');
-        showProfile(); // Redirect straight to profile
+        showProfile(); 
     } catch (error) {
-        console.error('Error saving profile:', error);
-        alert('Error saving profile. Try a different username.');
+        console.error('Final Error:', error);
+        alert('Error: This username might be taken, or your database needs the SQL update I sent you!');
     }
 }
 
