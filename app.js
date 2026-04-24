@@ -22,9 +22,21 @@ async function checkUser() {
     updateUIForUser();
 }
 
-db.auth.onAuthStateChange((event, session) => {
+db.auth.onAuthStateChange(async (event, session) => {
     currentUser = session?.user || null;
     updateUIForUser();
+    
+    if (currentUser) {
+        const { data: profile } = await db.from('profiles').select('username').eq('id', currentUser.id).single();
+        if (profile) {
+            // Update navigation links to go to the new profile page instead of modal
+            const profileBtn = document.querySelector('[onclick="showProfile()"]');
+            if (profileBtn) {
+                profileBtn.setAttribute('onclick', `navigateToProfile('${profile.username}')`);
+            }
+        }
+    }
+
     if (event === 'SIGNED_IN') {
         hideModal('auth-modal');
         checkProfileOnboarding();
@@ -92,7 +104,7 @@ async function loadCategories() {
 }
 
 async function loadListings(filter = {}) {
-    let query = db.from('listings').select('*, profiles(username, verified)').eq('status', 'active');
+    let query = db.from('listings').select('*, profiles(*)').eq('status', 'active');
     
     if (filter.category_id) query = query.eq('category_id', filter.category_id);
     if (filter.search) query = query.ilike('title', `%${filter.search}%`);
@@ -121,6 +133,16 @@ async function loadListings(filter = {}) {
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-gray-900 text-lg leading-tight truncate flex-1 mr-2">${l.title}</h3>
                 </div>
+                
+                <!-- Clickable Seller Name -->
+                <div onclick="event.stopPropagation(); navigateToProfile('${l.profiles?.username}')" class="flex items-center gap-2 mb-4 hover:opacity-70 transition-opacity">
+                    <div class="w-6 h-6 rounded-full bg-winjay-orange flex items-center justify-center text-white text-[10px] font-bold overflow-hidden">
+                        ${l.profiles?.avatar_url ? `<img src="${l.profiles.avatar_url}" class="w-full h-full object-cover">` : (l.profiles?.full_name?.[0] || 'U').toUpperCase()}
+                    </div>
+                    <span class="text-xs font-bold text-gray-600">@${l.profiles?.username || 'user'}</span>
+                    ${l.profiles?.verified ? '<i data-lucide="badge-check" class="w-3.5 h-3.5 fill-winjay-orange text-white"></i>' : ''}
+                </div>
+
                 <div class="flex items-center gap-2 text-gray-400 text-xs mb-4">
                     <div class="flex items-center gap-1">
                         <i data-lucide="map-pin" class="w-3 h-3"></i>
@@ -482,12 +504,129 @@ function copyReferralLink() {
     alert('Referral link copied! Share it to get verified.');
 }
 
+// Navigation System
+function goHome() {
+    document.getElementById('home-view').classList.remove('hidden');
+    document.getElementById('profile-view').classList.add('hidden');
+    window.scrollTo(0, 0);
+}
+
+async function navigateToProfile(username) {
+    if (!username) return;
+    
+    // Switch views
+    document.getElementById('home-view').classList.add('hidden');
+    document.getElementById('profile-view').classList.remove('hidden');
+    window.scrollTo(0, 0);
+
+    try {
+        const { data: profile, error } = await db.from('profiles').select('*').eq('username', username).single();
+        if (error) throw error;
+
+        const isOwner = currentUser && currentUser.id === profile.id;
+
+        // Render Profile Data
+        document.getElementById('view-profile-name').innerText = profile.full_name || 'Winjay User';
+        document.getElementById('view-profile-username').innerText = `@${profile.username}`;
+        document.getElementById('view-profile-business').innerText = profile.business_type || 'Personal';
+        document.getElementById('view-profile-wilaya').innerText = profile.wilaya;
+        
+        // Avatar
+        const avatarInitial = document.getElementById('view-avatar-initial');
+        const avatarImg = document.getElementById('view-avatar-img');
+        if (profile.avatar_url) {
+            avatarImg.src = profile.avatar_url;
+            avatarImg.classList.remove('hidden');
+            avatarInitial.classList.add('hidden');
+        } else {
+            avatarInitial.innerText = (profile.full_name?.[0] || 'U').toUpperCase();
+            avatarInitial.classList.remove('hidden');
+            avatarImg.classList.add('hidden');
+        }
+
+        // Cover
+        if (profile.cover_url) {
+            document.getElementById('view-profile-cover').src = profile.cover_url;
+        }
+
+        // Badge
+        const badgeContainer = document.getElementById('view-profile-badge');
+        badgeContainer.innerHTML = profile.verified ? `
+            <div class="inline-flex items-center gap-1.5 bg-winjay-orange text-white px-4 py-1.5 rounded-full text-sm font-black shadow-lg">
+                <i data-lucide="badge-check" class="w-4 h-4 fill-white text-winjay-orange"></i>
+                Founding Verified
+            </div>
+        ` : '';
+
+        // Owner only buttons
+        document.getElementById('edit-profile-btn').classList.toggle('hidden', !isOwner);
+        document.getElementById('logout-btn').classList.toggle('hidden', !isOwner);
+        document.getElementById('view-tasks-section').classList.toggle('hidden', !isOwner);
+
+        if (isOwner) updateProgress(profile);
+
+        // Load Profile Listings
+        const { data: listings } = await db.from('listings').select('*').eq('user_id', profile.id).order('created_at', { ascending: false });
+        document.getElementById('view-listings-count').innerText = listings?.length || 0;
+        
+        const grid = document.getElementById('view-listings-grid');
+        grid.innerHTML = listings?.length ? listings.map(l => `
+            <div class="relative group rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                <img src="${l.images?.[0] || 'https://via.placeholder.com/400x300'}" class="w-full h-40 sm:h-56 object-cover">
+                <div class="p-4">
+                    <p class="font-black text-sm truncate mb-1">${l.title}</p>
+                    <p class="winjay-orange font-black text-sm">${Number(l.price).toLocaleString()} DZD</p>
+                </div>
+                ${isOwner ? `
+                    <button onclick="deleteListing('${l.id}')" class="absolute top-2 right-2 bg-white/90 p-2 rounded-xl text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                ` : ''}
+            </div>
+        `).join('') : '<p class="col-span-full text-center py-12 text-gray-400">No listings yet.</p>';
+
+        lucide.createIcons();
+    } catch (err) {
+        console.error('Profile navigation error:', err);
+        goHome();
+    }
+}
+
+async function handleMediaUpload(input, type) {
+    const file = input.files[0];
+    if (!file || !currentUser) return;
+
+    try {
+        // 1. Upload to Supabase Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${currentUser.id}/${type}_${Math.random()}.${fileExt}`;
+        const { data, error } = await db.storage.from('media').upload(fileName, file);
+        if (error) throw error;
+
+        // 2. Get Public URL
+        const { data: { publicUrl } } = db.storage.from('media').getPublicUrl(fileName);
+
+        // 3. Update Profile Table
+        const updateData = {};
+        updateData[`${type}_url`] = publicUrl;
+        const { error: updateError } = await db.from('profiles').update(updateData).eq('id', currentUser.id);
+        if (updateError) throw updateError;
+
+        // 4. Refresh View
+        const { data: profile } = await db.from('profiles').select('username').eq('id', currentUser.id).single();
+        navigateToProfile(profile.username);
+    } catch (err) {
+        console.error('Upload error:', err);
+        alert('Upload failed: ' + err.message);
+    }
+}
+
 async function handleSignOut() {
     const { error } = await db.auth.signOut();
-    if (error) alert(error.message);
-    else {
-        hideModal('profile-modal');
-        window.location.reload();
+    if (error) {
+        alert('Error signing out: ' + error.message);
+    } else {
+        location.reload();
     }
 }
 
