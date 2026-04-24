@@ -15,6 +15,17 @@
         .winjay-orange { color: #FF6600; }
         .bg-winjay-orange { background-color: #FF6600; }
         .border-winjay-orange { border-color: #FF6600; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Twitter-style interactions */
+        .like-btn:hover { color: #f91880; background-color: rgba(249, 24, 128, 0.1); }
+        .share-btn:hover { color: #1d9bf0; background-color: rgba(29, 155, 240, 0.1); }
+        .whatsapp-btn:hover { color: #25d366; background-color: rgba(37, 211, 102, 0.1); }
+        
+        /* Premium card effects */
+        .listing-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .listing-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -117,18 +128,68 @@
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Username (@handle)</label>
-                    <input type="text" id="setup-username" placeholder="e.g. amine_dz" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Unique Username</label>
+                    <input type="text" id="setup-username" placeholder="@username" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
-                    <input type="tel" id="setup-phone" placeholder="05/06/07XXXXXXXX" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="setup-fullname" placeholder="John Doe" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Business Type</label>
+                    <select id="setup-business" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
+                        <option value="Personal">Individual / Personal</option>
+                        <option value="Doctor">Doctor / Medical</option>
+                        <option value="Shoe Shop">Shoe Shop</option>
+                        <option value="Car Dealership">Car Dealership</option>
+                        <option value="Freelancer">Freelancer</option>
+                        <option value="Photographer">Photographer</option>
+                        <option value="Private School">Private School</option>
+                        <option value="Restaurant">Restaurant / Cafe</option>
+                        <option value="Tech Store">Electronics / Tech Store</option>
+                        <option value="Real Estate">Real Estate Agency</option>
+                        <option value="Other">Other Business</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Mobile Phone</label>
+                    <input type="tel" id="setup-phone" placeholder="05/06/07..." class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Wilaya</label>
                     <select id="setup-wilaya" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-winjay-orange/50 transition-all">
-                        <option value="">Select your Wilaya</option>
-                        <!-- Wilayas will be injected -->
+                        <option value="">Select your location</option>
+                        <option value="01-Adrar">01 - Adrar</option>
+                        <option value="02-Chlef">02 - Chlef</option>
+                        <option value="03-Laghouat">03 - Laghouat</option>
+                        <option value="04-Oum El Bouaghi">04 - Oum El Bouaghi</option>
+                        <option value="05-Batna">05 - Batna</option>
+                        <option value="06-Bejaia">06 - Bejaia</option>
+                        <option value="07-Biskra">07 - Biskra</option>
+                        <option value="08-Bechar">08 - Bechar</option>
+                        <option value="09-Blida">09 - Blida</option>
+                        <option value="10-Bouira">10 - Bouira</option>
+                        <option value="11-Tamanghasset">11 - Tamanghasset</option>
+                        <option value="12-Tebessa">12 - Tebessa</option>
+                        <option value="13-Tlemcen">13 - Tlemcen</option>
+                        <option value="14-Tiaret">14 - Tiaret</option>
+                        <option value="15-Tizi Ouzou">15 - Tizi Ouzou</option>
+                        <option value="16-Alger">16 - Alger</option>
+                        <option value="17-Djelfa">17 - Djelfa</option>
+                        <option value="18-Jijel">18 - Jijel</option>
+                        <option value="19-Setif">19 - Setif</option>
+                        <option value="20-Saida">20 - Saida</option>
+                        <option value="21-Skikda">21 - Skikda</option>
+                        <option value="22-Sidi Bel Abbes">22 - Sidi Bel Abbes</option>
+                        <option value="23-Annaba">23 - Annaba</option>
+                        <option value="24-Guelma">24 - Guelma</option>
+                        <option value="25-Constantine">25 - Constantine</option>
+                        <option value="26-Medea">26 - Medea</option>
+                        <option value="27-Mostaganem">27 - Mostaganem</option>
+                        <option value="28-M'Sila">28 - M'Sila</option>
+                        <option value="29-Mascara">29 - Mascara</option>
+                        <option value="30-Ouargla">30 - Ouargla</option>
+                        <option value="31-Oran">31 - Oran</option>
                     </select>
                 </div>
                 <button onclick="saveProfile()" class="w-full bg-winjay-orange text-white py-4 rounded-xl font-bold shadow-lg shadow-winjay-orange/20 hover:opacity-90 transition-opacity mt-4">Save & Continue →</button>
@@ -237,21 +298,45 @@
                     <div>
                         <h2 id="profile-name" class="text-2xl font-bold flex items-center gap-2"></h2>
                         <p id="profile-username-display" class="text-gray-500"></p>
-                        <div id="profile-badge-container" class="mt-1"></div>
+                        <p id="profile-business-display" class="text-winjay-orange font-bold text-xs uppercase tracking-widest mt-1"></p>
+                        <div id="profile-badge-container" class="mt-2"></div>
                     </div>
                 </div>
                 <button onclick="hideModal('profile-modal')" class="p-2 hover:bg-gray-100 rounded-full transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
 
+            <!-- Task Progress Bar -->
+            <div id="profile-tasks-section" class="mb-8 p-6 bg-gray-50 rounded-3xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-sm uppercase tracking-widest text-gray-500">Verification Progress</h3>
+                    <span id="task-percent" class="font-black text-winjay-orange">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-6">
+                    <div id="task-progress-bar" class="bg-winjay-orange h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <div id="tasks-list" class="space-y-3">
+                    <!-- Tasks will be injected -->
+                </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-gray-50 p-4 rounded-2xl">
-                    <span class="text-xs text-gray-400 uppercase font-bold">Location</span>
-                    <p id="profile-wilaya-display" class="font-bold text-gray-900"></p>
+                <div class="p-4 bg-gray-50 rounded-2xl">
+                    <p class="text-[10px] uppercase font-bold text-gray-400 mb-1">Location</p>
+                    <p id="profile-wilaya-display" class="font-bold text-sm"></p>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-2xl">
-                    <span class="text-xs text-gray-400 uppercase font-bold">Phone</span>
-                    <p id="profile-phone-display" class="font-bold text-gray-900"></p>
+                <div class="p-4 bg-gray-50 rounded-2xl">
+                    <p class="text-[10px] uppercase font-bold text-gray-400 mb-1">Contact</p>
+                    <p id="profile-phone-display" class="font-bold text-sm"></p>
                 </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="font-bold text-lg mb-4">Referral Link</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="referral-link-input" readonly class="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 text-sm font-mono" value="">
+                    <button onclick="copyReferralLink()" class="bg-black text-white px-6 rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors">Copy</button>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">Get 10 people to join via this link for automatic verification.</p>
             </div>
 
             <div class="mb-8">

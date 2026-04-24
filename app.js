@@ -107,36 +107,39 @@ async function loadListings(filter = {}) {
     }
 
     container.innerHTML = listings.map(l => `
-        <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group" onclick="viewListing('${l.id}')">
-            <div class="relative h-48 overflow-hidden">
-                <img src="${l.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                <div class="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                    ${l.condition || 'Used'}
+        <div class="listing-card bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer group" onclick="viewListing('${l.id}')">
+            <div class="relative h-56 overflow-hidden">
+                <img src="${l.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image'}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                    ${l.condition || 'New'}
                 </div>
-                ${l.profiles?.verified ? `
-                    <div class="absolute top-3 right-3 bg-winjay-orange text-white p-1 rounded-full shadow-lg" title="Founding Verified User">
-                        <i data-lucide="check" class="w-3 h-3"></i>
-                    </div>
-                ` : ''}
+                <button onclick="event.stopPropagation(); toggleLike('${l.id}')" class="absolute top-4 right-4 p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-sm hover:scale-110 active:scale-90 transition-all group/like">
+                    <i data-lucide="heart" class="w-4 h-4 transition-colors ${isLiked(l.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover/like:text-red-500'}"></i>
+                </button>
             </div>
-            <div class="p-4">
-                <div class="flex justify-between items-start mb-1">
-                    <h3 class="font-bold text-gray-900 truncate flex-1 mr-2">${l.title}</h3>
-                    <span class="winjay-orange font-bold text-sm whitespace-nowrap">${Number(l.price).toLocaleString()} DZD</span>
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-gray-900 text-lg leading-tight truncate flex-1 mr-2">${l.title}</h3>
                 </div>
-                <div class="flex items-center gap-2 text-gray-400 text-xs mb-3">
-                    <i data-lucide="map-pin" class="w-3 h-3"></i>
-                    <span>${l.wilaya}</span>
+                <div class="flex items-center gap-2 text-gray-400 text-xs mb-4">
+                    <div class="flex items-center gap-1">
+                        <i data-lucide="map-pin" class="w-3 h-3"></i>
+                        <span>${l.wilaya.split('-')[1]?.trim() || l.wilaya}</span>
+                    </div>
                     <span>•</span>
                     <span>${timeAgo(l.created_at)}</span>
                 </div>
-                <div class="pt-3 border-t border-gray-50 flex items-center justify-between">
-                    <span class="text-xs text-gray-500 font-medium flex items-center gap-1">
-                        @${l.profiles?.username || 'user'}
-                        ${l.profiles?.verified ? '<i data-lucide="badge-check" class="w-3 h-3 winjay-orange"></i>' : ''}
-                    </span>
-                    <div class="flex gap-2">
-                        <button onclick="event.stopPropagation(); window.open('https://wa.me/213${l.profiles?.phone?.replace(/^0/, '')}', '_blank')" class="text-green-500 hover:bg-green-50 p-1.5 rounded-lg transition-colors">
+                
+                <div class="flex items-center justify-between pt-4 border-t border-gray-50">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Price</span>
+                        <span class="winjay-orange font-black text-lg">${Number(l.price).toLocaleString()} <span class="text-xs">DZD</span></span>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="event.stopPropagation(); shareListing('${l.id}')" class="share-btn p-2 rounded-full text-gray-400 transition-colors">
+                            <i data-lucide="share-2" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="event.stopPropagation(); window.open('https://wa.me/213${l.profiles?.phone?.replace(/^0/, '')}', '_blank')" class="whatsapp-btn p-2 rounded-full text-gray-400 transition-colors">
                             <i data-lucide="message-circle" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -216,35 +219,35 @@ function populateWilayaSelects() {
 
 async function saveProfile() {
     const username = document.getElementById('setup-username').value.trim();
-    const full_name = document.getElementById('setup-fullname').value.trim();
+    const fullName = document.getElementById('setup-fullname').value.trim();
+    const businessType = document.getElementById('setup-business').value;
     const phone = document.getElementById('setup-phone').value.trim();
     const wilaya = document.getElementById('setup-wilaya').value;
 
-    if (!username || !phone || !wilaya) {
-        alert('Please fill in all required fields.');
+    if (!username || !fullName || !phone || !wilaya) {
+        alert('Please fill in all mandatory fields');
         return;
     }
 
-    // Verified System (Core Differentiator)
-    // Check if user qualifies for Founding Badge (First 1000 users)
-    const { count } = await db.from('profiles').select('*', { count: 'exact', head: true });
-    const isFoundingCandidate = count < 1000;
+    try {
+        const { error } = await db.from('profiles').upsert({
+            id: currentUser.id,
+            username,
+            full_name: fullName,
+            business_type: businessType,
+            phone,
+            wilaya,
+            verified: false,
+            referral_count: 0,
+            updated_at: new Date()
+        });
 
-    const { error } = await db.from('profiles').upsert({
-        id: currentUser.id,
-        username,
-        phone,
-        wilaya,
-        verified: isFoundingCandidate, // Instant verification for first 1000
-        verified_type: isFoundingCandidate ? 'Founding' : null,
-        updated_at: new Date()
-    });
-
-    if (error) {
-        alert('Error: ' + error.message);
-    } else {
+        if (error) throw error;
         hideModal('onboarding-modal');
-        alert(isFoundingCandidate ? 'Profile completed! You earned the 🟠 Founding Verified Badge!' : 'Profile completed! Welcome to Winjay.');
+        showProfile(); // Redirect straight to profile
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        alert('Error saving profile. Try a different username.');
     }
 }
 
@@ -371,56 +374,96 @@ function previewImage(input) {
 
 async function showProfile() {
     if (!currentUser) return;
-
+    
     const { data: profile } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
     if (!profile) {
         checkProfileOnboarding();
         return;
     }
 
-    // Set profile info
-    document.getElementById('profile-name').innerText = profile.username || 'Winjay User';
+    // Basic Info
+    document.getElementById('profile-name').innerText = profile.full_name || 'Winjay User';
     document.getElementById('profile-username-display').innerText = `@${profile.username}`;
-    document.getElementById('profile-avatar-large').innerText = (profile.username?.[0] || 'U').toUpperCase();
+    document.getElementById('profile-business-display').innerText = profile.business_type || 'Personal';
+    document.getElementById('profile-avatar-large').innerText = (profile.full_name?.[0] || 'U').toUpperCase();
     document.getElementById('profile-wilaya-display').innerText = profile.wilaya;
     document.getElementById('profile-phone-display').innerText = profile.phone;
+    
+    // Referral Link
+    const referralLink = `${window.location.origin}?ref=${profile.username}`;
+    document.getElementById('referral-link-input').value = referralLink;
 
-    // Set badge
+    // Badge
     const badgeContainer = document.getElementById('profile-badge-container');
     if (profile.verified) {
         badgeContainer.innerHTML = `
-            <div class="inline-flex items-center gap-1.5 bg-winjay-orange/10 text-winjay-orange px-3 py-1 rounded-full text-xs font-bold">
-                <i data-lucide="badge-check" class="w-3.5 h-3.5"></i>
-                ${profile.verified_type} Verified
+            <div class="inline-flex items-center gap-1.5 bg-winjay-orange text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                <i data-lucide="badge-check" class="w-3.5 h-3.5 fill-white text-winjay-orange"></i>
+                Founding Verified
             </div>
         `;
     } else {
         badgeContainer.innerHTML = '';
     }
 
-    // Load my listings
+    // Tasks and Progress
+    updateProgress(profile);
+
+    // Load Listings
     const { data: listings } = await db.from('listings').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
     const grid = document.getElementById('my-listings-grid');
-    
-    if (!listings || listings.length === 0) {
-        grid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-400 text-sm">You haven\'t posted anything yet.</p>';
-    } else {
-        grid.innerHTML = listings.map(l => `
-            <div class="relative group rounded-xl overflow-hidden border border-gray-100">
-                <img src="${l.images?.[0] || 'https://via.placeholder.com/200'}" class="w-full h-32 object-cover">
-                <div class="p-2">
-                    <p class="font-bold text-xs truncate">${l.title}</p>
-                    <p class="winjay-orange text-xs font-bold">${Number(l.price).toLocaleString()} DZD</p>
-                </div>
-                <button onclick="deleteListing('${l.id}')" class="absolute top-2 right-2 bg-white/90 p-1.5 rounded-lg text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+    grid.innerHTML = listings?.length ? listings.map(l => `
+        <div class="relative group rounded-2xl overflow-hidden border border-gray-100">
+            <img src="${l.images?.[0] || 'https://via.placeholder.com/200'}" class="w-full h-32 object-cover">
+            <div class="p-2">
+                <p class="font-bold text-xs truncate">${l.title}</p>
+                <p class="winjay-orange text-xs font-bold">${Number(l.price).toLocaleString()} DZD</p>
+            </div>
+            <button onclick="deleteListing('${l.id}')" class="absolute top-2 right-2 bg-white/90 p-1.5 rounded-lg text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
-            </div>
-        `).join('');
-    }
+        </div>
+    `).join('') : '<p class="col-span-full text-center py-8 text-gray-400 text-sm">No listings yet.</p>';
 
     showModal('profile-modal');
     lucide.createIcons();
+}
+
+function updateProgress(profile) {
+    const tasks = [
+        { name: 'Setup Username', done: !!profile.username },
+        { name: 'Setup Full Name', done: !!profile.full_name },
+        { name: 'Professional Profile Picture', done: true }, // Simplified for now
+        { name: 'Add Mobile Phone', done: !!profile.phone },
+        { name: 'Select Wilaya', done: !!profile.wilaya },
+        { name: `Refer 10 Users (${profile.referral_count || 0}/10)`, done: (profile.referral_count || 0) >= 10 }
+    ];
+
+    const completed = tasks.filter(t => t.done).length;
+    const percent = Math.round((completed / tasks.length) * 100);
+
+    document.getElementById('task-percent').innerText = `${percent}%`;
+    document.getElementById('task-progress-bar').style.width = `${percent}%`;
+
+    document.getElementById('tasks-list').innerHTML = tasks.map(t => `
+        <div class="flex items-center justify-between text-sm ${t.done ? 'text-gray-400' : 'text-gray-700'}">
+            <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full flex items-center justify-center border ${t.done ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'}">
+                    ${t.done ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}
+                </div>
+                <span class="${t.done ? 'line-through' : 'font-medium'}">${t.name}</span>
+            </div>
+        </div>
+    `).join('');
+    
+    lucide.createIcons();
+}
+
+function copyReferralLink() {
+    const input = document.getElementById('referral-link-input');
+    input.select();
+    document.execCommand('copy');
+    alert('Referral link copied! Share it to get verified.');
 }
 
 async function handleSignOut() {
@@ -440,6 +483,36 @@ async function deleteListing(id) {
     else {
         showProfile(); // Refresh profile view
         loadListings(); // Refresh main feed
+    }
+}
+
+// Likes Logic
+function isLiked(id) {
+    const likes = JSON.parse(localStorage.getItem('winjay_likes') || '[]');
+    return likes.includes(id);
+}
+
+function toggleLike(id) {
+    let likes = JSON.parse(localStorage.getItem('winjay_likes') || '[]');
+    if (likes.includes(id)) {
+        likes = likes.filter(l => l !== id);
+    } else {
+        likes.push(id);
+    }
+    localStorage.setItem('winjay_likes', JSON.stringify(likes));
+    loadListings(); // Refresh UI
+}
+
+function shareListing(id) {
+    const url = `${window.location.origin}/listing/${id}`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this listing on Winjay',
+            url: url
+        });
+    } else {
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
     }
 }
 
